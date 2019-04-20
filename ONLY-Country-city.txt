@@ -1,0 +1,56 @@
+ <div class="form-group row">
+
+                    <label class="col-sm-2 offset-sm-2 col-form-label"
+                           for="country">Country</label>
+
+                    <div class="col-sm-6">
+                               <select placeholder="Country"
+                                     class="form-control margin-bottom" name="country" id="country_id">
+                                   @foreach($country as $key)
+                                    <option value="{{$key->id}}"> {{$key->name}}</option>
+                                   @endforeach
+                                    </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+
+                    <label class="col-sm-2 offset-sm-2 col-form-label" for="city">City</label>
+
+                    <div class="col-sm-6">
+                                <select placeholder="city"
+                                    class="form-control margin-bottom" name="city" id="city">
+                                </select>
+                    </div>
+                </div>
+@section('footer_scripts')
+  <script>
+$(document).ready(function(){
+	$('#country_id').change(function() {
+		var country_id = $(this).val();
+		$.ajaxSetup({
+			headers: {
+				'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+			}
+		});
+		$.ajax({
+			type:'POST',
+			url:'/getcitylist',
+			data:{country_id: country_id},
+			success: function (data) {
+				$( "#city" ).html(data);
+			}
+		});
+	});
+});
+</script>
+@endsection
+
+Route::post('/getcitylist','ProductController@getcitylist')->name('getcitylist')->middleware('auth');
+  public function getcitylist(Request $request){
+        $stringToSend = '<option value="">-Select-</option>';
+        $cityLists = City::where('country_id', $request->country_id)->get();
+        foreach($cityLists as $cityList){
+        $stringToSend = $stringToSend.'<option value="'.$cityList->id.'">'.$cityList->name.'</option>';
+        }
+        echo $stringToSend;
+    }
