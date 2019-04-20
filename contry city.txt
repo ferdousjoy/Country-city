@@ -1,0 +1,72 @@
+
+
+  <select name="customer" class="selectpicker form-control" id="co">
+                                               <option>--Choose One--</option>
+                                            @foreach($cus as $key)
+                                              <option id="field1" value="{{$key->id}}">{{$key->customer}}</option>
+                                            @endforeach
+                                            </select>
+                                          </div>
+                                            </div>
+    <div class="col-md-6">
+                                          <select name="shippingaddress" class="selectpicker form-control" id="ship">
+                                             {{-- @foreach($cus as $key)
+                                              <option id="field1" value="{{$key->id}}">{{$key->BL_Ad}}</option>
+                                              <option id="field1" value="{{$key->id}}">{{$key->BL_Ad2}}</option>
+                                            @endforeach --}}
+                                            </select>
+                                          </div>
+                                            </div>
+
+@section('footer_scripts')
+  <script>
+$(document).ready(function(){
+	$('#co').change(function() {
+	var country_id = $(this).val();
+	$.ajaxSetup({
+		headers: {
+			'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+			}
+		});
+	$.ajax({
+		type:'POST',
+		url:'/getcitylist2',
+		data:{country_id: country_id},
+		success: function (data) {
+        var result = data.split('###');
+			$( "#city" ).html(result[0]);
+			$( "#ship" ).html(result[1]);
+			}
+		});
+
+	});
+});
+
+
+</script>
+@endsection
+Route::post('/getcitylist2','ProductController@getcitylist2')->name('getcitylist2')->middleware('auth');
+
+public function getcitylist(Request $request){
+        $stringToSend = '<option value="">-Select-</option>';
+        $cityLists = City::where('country_id', $request->country_id)->get();
+        foreach($cityLists as $cityList){
+        $stringToSend = $stringToSend.'<option value="'.$cityList->id.'">'.$cityList->name.'</option>';
+        }
+        echo $stringToSend;
+    }
+
+(when take data from two place)
+    public function getcitylist2(Request $request){
+      $stringToSend = '<option value="">-Select-</option>';
+      $cityLists = QuoteModel::where('country_id', $request->country_id)->get();
+      foreach($cityLists as $cityList){
+      $stringToSend = $stringToSend.'<option value="'.$cityList->id.'">'.$cityList->number0.'</option>';
+      }
+      $stringToSend = $stringToSend.'###';
+      $customer_billing_address = CustomerModel::where('id', $request->country_id)->first();
+      $stringToSend = $stringToSend.'<option value="BL_Ad">'.$customer_billing_address->BL_Ad.'</option>';
+      $stringToSend = $stringToSend.'<option value="BL_Ad2">'.$customer_billing_address->BL_Ad2.'</option>';
+      $stringToSend = $stringToSend.'<option value="BL_Ad222">'.$customer_billing_address->BL_Ad222.'</option>';
+      echo $stringToSend;
+  }
